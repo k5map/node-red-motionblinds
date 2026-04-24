@@ -1,0 +1,49 @@
+{
+  "name": "@k5map/node-red-motionblinds",
+  "version": "0.1.0",
+  "description": "Node-RED nodes for Motion Blinds (Coulisse) Wi-Fi bridges. Port of the starkillerOG/motion-blinds Python library to pure JavaScript — zero runtime dependencies.",
+  "keywords": [
+    "node-red",
+    "motion-blinds",
+    "motionblinds",
+    "coulisse",
+    "blinds",
+    "home-automation",
+    "smart-home",
+    "brel",
+    "bloc-blinds",
+    "dooya",
+    "3-day-blinds",
+    "alta"
+  ],
+  "author": "k5map",
+  "license": "MIT",
+  "engines": {
+    "node": ">=14"
+  },
+  "node-red": {
+    "version": ">=2.0.0",
+    "nodes": {
+      "motion-gateway":  "nodes/motion-gateway.js",
+      "motion-blind":    "nodes/motion-blind.js",
+      "motion-discover": "nodes/motion-discover.js"
+    }
+  },
+  "dependencies": {},
+  "files": [
+    "lib/",
+    "nodes/",
+    "icons/",
+    "examples/",
+    "README.md",
+    "LICENSE"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/k5map/node-red-motionblinds.git"
+  },
+  "bugs": {
+    "url": "https://github.com/k5map/node-red-motionblinds/issues"
+  },
+  "homepage": "https://github.com/k5map/node-red-motionblinds#readme"
+}
