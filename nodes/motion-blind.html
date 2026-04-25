@@ -1,0 +1,138 @@
+<script type="text/html" data-template-name="motion-blind">
+  <div class="form-row">
+    <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
+    <input type="text" id="node-input-name" placeholder="Kitchen blind">
+  </div>
+
+  <div class="form-row">
+    <label for="node-input-gateway"><i class="fa fa-server"></i> Gateway</label>
+    <input type="text" id="node-input-gateway">
+  </div>
+
+  <div class="form-row">
+    <label for="node-input-mac"><i class="fa fa-barcode"></i> Blind MAC</label>
+    <input type="text" id="node-input-mac" placeholder="abcdefghijkl0001">
+  </div>
+  <div class="form-tips">
+    Full 16-char MAC of the blind (gateway MAC + 4-char suffix), as returned by a <code>motion-discover</code> node or a <code>status</code>/<code>refresh-gateway</code> call.
+  </div>
+
+  <div class="form-row">
+    <label for="node-input-deviceType"><i class="fa fa-microchip"></i> Type</label>
+    <select id="node-input-deviceType" style="width:70%;">
+      <option value="10000000">10000000 &mdash; 433MHz single motor (most blinds)</option>
+      <option value="10000001">10000001 &mdash; Top-Down-Bottom-Up (TDBU)</option>
+    </select>
+  </div>
+
+  <div class="form-row">
+    <label for="node-input-defaultMotor"><i class="fa fa-cogs"></i> Default motor</label>
+    <select id="node-input-defaultMotor" style="width:80px;">
+      <option value="B">B (Bottom)</option>
+      <option value="T">T (Top)</option>
+      <option value="C">C (Combined)</option>
+    </select>
+    <span class="form-tips" style="margin-left:8px;">TDBU only</span>
+  </div>
+
+  <div class="form-row">
+    <label for="node-input-emitOnPush"><i class="fa fa-bullhorn"></i> Emit on push</label>
+    <input type="checkbox" id="node-input-emitOnPush" style="display:inline-block;width:auto;vertical-align:top;">
+    Send a message when the gateway pushes a status update
+  </div>
+
+  <div class="form-row">
+    <label for="node-input-invertPosition"><i class="fa fa-arrows-alt-v"></i> Invert position</label>
+    <input type="checkbox" id="node-input-invertPosition" style="display:inline-block;width:auto;vertical-align:top;">
+    Flip open/close direction for this blind
+  </div>
+  <div class="form-tips">
+    Enable when this blind is installed with its limits reversed (physically closed reports as 100 instead of 0,
+    or <code>open</code> causes it to close). Applies to <code>position</code>, <code>open</code>, and <code>close</code>
+    in both directions — the <code>motion-blind</code> output shows the corrected value and commands are re-mapped
+    before sending to the gateway.
+  </div>
+</script>
+
+<script type="text/html" data-help-name="motion-blind">
+  <p>Control one Motion Blinds blind through a Wi-Fi bridge.</p>
+
+  <h3>Inputs</h3>
+  <dl class="message-properties">
+    <dt>payload <span class="property-type">string | number | object</span></dt>
+    <dd>
+      Accepts several shapes:
+      <ul>
+        <li><code>"open"</code>, <code>"close"</code>, <code>"stop"</code>, <code>"status"</code></li>
+        <li><code>"position:50"</code>, <code>"angle:90"</code></li>
+        <li><code>50</code> &mdash; a bare number sets position</li>
+        <li><code>{ action: "position", value: 75, motor: "T" }</code></li>
+        <li><code>{ position: 75 }</code> or <code>{ angle: 45 }</code></li>
+      </ul>
+    </dd>
+
+    <dt class="optional">action <span class="property-type">string</span></dt>
+    <dd>Alternate way to specify the action. One of <code>open</code>, <code>close</code>, <code>stop</code>,
+        <code>position</code>, <code>angle</code>, <code>status</code>, <code>refresh-gateway</code>.
+        Aliases: <code>up</code>=open, <code>down</code>=close, <code>query</code>/<code>read</code>=status.</dd>
+
+    <dt class="optional">position <span class="property-type">number</span></dt>
+    <dd>0&ndash;100. Triggers a set-position.</dd>
+
+    <dt class="optional">angle <span class="property-type">number</span></dt>
+    <dd>0&ndash;180. Triggers a set-angle.</dd>
+
+    <dt class="optional">motor <span class="property-type">string</span></dt>
+    <dd>TDBU only: <code>T</code>, <code>B</code>, or <code>C</code> (combined).</dd>
+
+    <dt class="optional">mac <span class="property-type">string</span></dt>
+    <dd>Override the configured MAC for a single message. Useful in dynamic flows.</dd>
+  </dl>
+
+  <h3>Outputs</h3>
+  <dl class="message-properties">
+    <dt>topic <span class="property-type">string</span></dt>
+    <dd>The action that was performed (e.g. <code>open</code>, <code>position</code>), or <code>"status"</code> for push updates.</dd>
+
+    <dt>payload <span class="property-type">object</span></dt>
+    <dd>Snapshot of the blind: <code>mac</code>, <code>blindType</code>, <code>status</code>, <code>position</code>,
+        <code>angle</code>, <code>limitStatus</code>, <code>batteryVoltage</code> (V),
+        <code>batteryLevel</code> (% 0&ndash;100), <code>isCharging</code> (bool), <code>batteryRaw</code> (raw centivolts),
+        <code>RSSI</code>, etc. For TDBU blinds the battery fields are <code>{ T, B }</code> objects.
+        AC-powered blinds report <code>null</code> for all three battery fields.</dd>
+
+    <dt>ack <span class="property-type">object</span></dt>
+    <dd>The raw ack JSON from the gateway (present on command responses).</dd>
+
+    <dt>_source <span class="property-type">string</span></dt>
+    <dd><code>"ack"</code> for command responses, <code>"push"</code> for unsolicited multicast updates.</dd>
+  </dl>
+
+  <h3>Details</h3>
+  <p>Commands are sent as UDP <code>WriteDevice</code> messages to the gateway on port 32100. The AccessToken is computed
+     automatically (AES-128-ECB of the gateway's token under your KEY).</p>
+  <p>If the node hasn't seen a gateway token yet, the first command will trigger a <code>GetDeviceList</code> before the
+     actual write, so the first action after a restart may take a moment longer.</p>
+</script>
+
+<script type="text/javascript">
+  RED.nodes.registerType('motion-blind', {
+    category: 'smart home',
+    color: '#a6d8ff',
+    defaults: {
+      name:            { value: '' },
+      gateway:         { value: '', type: 'motion-gateway', required: true },
+      mac:             { value: '', required: true },
+      deviceType:      { value: '10000000' },
+      defaultMotor:    { value: 'B' },
+      emitOnPush:      { value: true },
+      invertPosition:  { value: false },
+    },
+    inputs: 1,
+    outputs: 1,
+    icon: 'font-awesome/fa-window-maximize',
+    label: function () {
+      return this.name || (this.mac ? 'blind ' + this.mac.slice(-6) : 'motion-blind');
+    },
+  });
+</script>

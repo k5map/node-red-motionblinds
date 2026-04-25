@@ -1,0 +1,122 @@
+<script type="text/html" data-template-name="motion-gateway">
+  <div class="form-row">
+    <label for="node-config-input-name"><i class="fa fa-tag"></i> Name</label>
+    <input type="text" id="node-config-input-name" placeholder="Optional name">
+  </div>
+
+  <div class="form-row">
+    <label for="node-config-input-ip"><i class="fa fa-globe"></i> Gateway IP</label>
+    <input type="text" id="node-config-input-ip" placeholder="192.168.1.100">
+  </div>
+
+  <div class="form-row">
+    <label for="node-config-input-key"><i class="fa fa-key"></i> App KEY</label>
+    <input type="password" id="node-config-input-key" placeholder="12ab345c-d67e-8f">
+  </div>
+  <div class="form-tips">
+    The 16-character KEY from the Motion app. Include the dashes.
+    Retrieve via the app: three-dot menu &rarr; Settings &rarr; Motion APP About &rarr; tap 5&times;.
+  </div>
+
+  <div class="form-row">
+    <label for="node-config-input-useMulticast"><i class="fa fa-rss"></i> Multicast</label>
+    <input type="checkbox" id="node-config-input-useMulticast" style="display:inline-block;width:auto;vertical-align:top;">
+    Listen on 238.0.0.18:32101 for push updates
+  </div>
+
+  <div class="form-row">
+    <label for="node-config-input-multicastInterface"><i class="fa fa-network-wired"></i> Interface</label>
+    <input type="text" id="node-config-input-multicastInterface" placeholder="(leave blank for default)">
+  </div>
+  <div class="form-tips">
+    If pushes don't arrive, set this to the IP of the Node-RED host's interface on the same LAN as the gateway.
+  </div>
+
+  <div class="form-row">
+    <label for="node-config-input-autoPoll"><i class="fa fa-clock"></i> Auto-refresh</label>
+    <input type="number" id="node-config-input-autoPoll" placeholder="0" min="0" style="width:80px;"> seconds (0 = off)
+  </div>
+
+  <div class="form-row">
+    <label for="node-config-input-verbose"><i class="fa fa-bug"></i> Verbose logs</label>
+    <input type="checkbox" id="node-config-input-verbose" style="display:inline-block;width:auto;vertical-align:top;">
+    Show every packet in the Node-RED debug sidebar (diagnostics)
+  </div>
+  <div class="form-tips">
+    Enable only when troubleshooting. Emits one line per UDP send/recv, which is chatty. When off,
+    those messages still log at <code>debug</code> level through the Node-RED logger.
+  </div>
+
+  <hr/>
+  <div class="form-row">
+    <label style="width:auto;"><i class="fa fa-battery-half"></i> Battery scale</label>
+    <span class="form-tips" style="margin-left:4px;">
+      Blinds report battery as a raw voltage. These values map voltage to a 0&ndash;100% level.
+      Leave blank to use the defaults (10.4&nbsp;V = 0%, 12.6&nbsp;V = 100%, charging at &ge;&nbsp;12.6&nbsp;V).
+    </span>
+  </div>
+  <div class="form-row">
+    <label for="node-config-input-batteryMinV">&nbsp;&nbsp;Min (0%)</label>
+    <input type="number" id="node-config-input-batteryMinV" step="0.01" placeholder="10.4" style="width:100px;"> V
+  </div>
+  <div class="form-row">
+    <label for="node-config-input-batteryMaxV">&nbsp;&nbsp;Max (100%)</label>
+    <input type="number" id="node-config-input-batteryMaxV" step="0.01" placeholder="12.6" style="width:100px;"> V
+  </div>
+  <div class="form-row">
+    <label for="node-config-input-batteryChargingV">&nbsp;&nbsp;Charging &ge;</label>
+    <input type="number" id="node-config-input-batteryChargingV" step="0.01" placeholder="12.6" style="width:100px;"> V
+  </div>
+</script>
+
+<script type="text/html" data-help-name="motion-gateway">
+  <p>Configuration for a Motion Blinds Wi-Fi gateway.</p>
+
+  <h3>Fields</h3>
+  <dl class="message-properties">
+    <dt>Gateway IP</dt>
+    <dd>LAN IP address of the bridge.</dd>
+
+    <dt>App KEY</dt>
+    <dd>16-character key from the Motion app (include dashes). Stored as a credential.</dd>
+
+    <dt>Multicast</dt>
+    <dd>When enabled, the node joins <code>238.0.0.18:32101</code> to receive heartbeat and status-report pushes.
+        Disable only if your network blocks IGMP and polling is the only option.</dd>
+
+    <dt>Interface</dt>
+    <dd>Local IP to bind the multicast listener to. Leave blank to let the OS choose. Set explicitly if the host has
+        multiple NICs or pushes aren't arriving.</dd>
+
+    <dt>Auto-refresh</dt>
+    <dd>Optional periodic <code>GetDeviceList</code> interval. Keeps the token fresh and re-discovers devices. Set to
+        0 to disable — multicast pushes usually make this unnecessary.</dd>
+  </dl>
+
+  <h3>Notes</h3>
+  <p>This config node is shared by all <code>motion-blind</code> and <code>motion-discover</code> nodes that reference it.
+     One gateway = one config node.</p>
+</script>
+
+<script type="text/javascript">
+  RED.nodes.registerType('motion-gateway', {
+    category: 'config',
+    defaults: {
+      name:                 { value: '' },
+      ip:                   { value: '', required: true },
+      useMulticast:         { value: true },
+      multicastInterface:   { value: '' },
+      autoPoll:             { value: 0 },
+      verbose:              { value: false },
+      batteryMinV:          { value: '' },
+      batteryMaxV:          { value: '' },
+      batteryChargingV:     { value: '' },
+    },
+    credentials: {
+      key: { type: 'password' },
+    },
+    label: function () {
+      return this.name || this.ip || 'motion-gateway';
+    },
+  });
+</script>

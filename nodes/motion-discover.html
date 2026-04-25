@@ -1,0 +1,54 @@
+<script type="text/html" data-template-name="motion-discover">
+  <div class="form-row">
+    <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
+    <input type="text" id="node-input-name" placeholder="Scan LAN">
+  </div>
+
+  <div class="form-row">
+    <label for="node-input-duration"><i class="fa fa-clock"></i> Duration</label>
+    <input type="number" id="node-input-duration" placeholder="5000" min="500" style="width:100px;"> ms
+  </div>
+
+  <div class="form-row">
+    <label for="node-input-interfaceIp"><i class="fa fa-network-wired"></i> Interface</label>
+    <input type="text" id="node-input-interfaceIp" placeholder="(leave blank for default)">
+  </div>
+</script>
+
+<script type="text/html" data-help-name="motion-discover">
+  <p>Broadcasts a <code>GetDeviceList</code> on the local network and collects acks from Motion Blinds gateways.</p>
+  <p>Trigger with any message (e.g. an <code>inject</code> node). Emits a single message summarising every gateway
+     that responded within the scan window.</p>
+
+  <h3>Outputs</h3>
+  <dl class="message-properties">
+    <dt>payload.count <span class="property-type">number</span></dt>
+    <dd>How many distinct gateways responded.</dd>
+    <dt>payload.gateways <span class="property-type">object</span></dt>
+    <dd>Keyed by gateway IP. Each entry contains the raw <code>GetDeviceListAck</code>
+        (<code>mac</code>, <code>deviceType</code>, <code>token</code>, <code>ProtocolVersion</code>,
+        plus a <code>data</code> array of child devices).</dd>
+  </dl>
+
+  <h3>Tip</h3>
+  <p>Drop this into a flow once to find your gateway IP and the MAC of every blind, then paste the MACs into
+     <code>motion-blind</code> nodes. You typically don't need to keep it running.</p>
+</script>
+
+<script type="text/javascript">
+  RED.nodes.registerType('motion-discover', {
+    category: 'smart home',
+    color: '#a6d8ff',
+    defaults: {
+      name:         { value: '' },
+      duration:     { value: 5000 },
+      interfaceIp:  { value: '' },
+    },
+    inputs: 1,
+    outputs: 1,
+    icon: 'font-awesome/fa-search',
+    label: function () {
+      return this.name || 'motion-discover';
+    },
+  });
+</script>

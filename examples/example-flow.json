@@ -1,0 +1,26 @@
+[
+    {
+        "id": "f_discover",
+        "type": "tab",
+        "label": "Motion Blinds — discover & control",
+        "disabled": false,
+        "info": "Example flow.\n\n1. Deploy.\n2. Click the inject on the left to scan your LAN.\n3. Note the gateway IP and the blind MAC(s) from the debug output.\n4. Edit the 'motion-gateway' config and paste your IP + app KEY.\n5. Edit each 'motion-blind' and paste the MAC.\n6. Use the 'Open', 'Close', 'Stop', and 'Position 50' inject nodes."
+    },
+    { "id": "g_dummy", "type": "motion-gateway", "name": "my-gateway", "ip": "192.168.1.100", "useMulticast": true, "multicastInterface": "", "autoPoll": 0 },
+
+    { "id": "i_discover", "type": "inject", "z": "f_discover", "name": "scan LAN", "props": [{"p":"payload"}], "payload": "", "payloadType": "date", "x": 140, "y": 80, "wires": [["n_discover"]] },
+    { "id": "n_discover",  "type": "motion-discover", "z": "f_discover", "name": "", "duration": 5000, "interfaceIp": "", "x": 320, "y": 80, "wires": [["d_discover"]] },
+    { "id": "d_discover",  "type": "debug", "z": "f_discover", "name": "gateways found", "active": true, "complete": "true", "x": 540, "y": 80, "wires": [] },
+
+    { "id": "i_open",  "type": "inject", "z": "f_discover", "name": "Open",        "props":[{"p":"payload"}], "payload": "open",        "payloadType": "str",  "x": 140, "y": 180, "wires": [["n_blind"]] },
+    { "id": "i_close", "type": "inject", "z": "f_discover", "name": "Close",       "props":[{"p":"payload"}], "payload": "close",       "payloadType": "str",  "x": 140, "y": 220, "wires": [["n_blind"]] },
+    { "id": "i_stop",  "type": "inject", "z": "f_discover", "name": "Stop",        "props":[{"p":"payload"}], "payload": "stop",        "payloadType": "str",  "x": 140, "y": 260, "wires": [["n_blind"]] },
+    { "id": "i_p50",   "type": "inject", "z": "f_discover", "name": "Position 50", "props":[{"p":"payload"}], "payload": "50",          "payloadType": "num",  "x": 140, "y": 300, "wires": [["n_blind"]] },
+    { "id": "i_stat",  "type": "inject", "z": "f_discover", "name": "Status",      "props":[{"p":"payload"}], "payload": "status",      "payloadType": "str",  "x": 140, "y": 340, "wires": [["n_blind"]] },
+
+    { "id": "n_blind", "type": "motion-blind", "z": "f_discover", "name": "kitchen blind",
+      "gateway": "g_dummy", "mac": "abcdefghijkl0001", "deviceType": "10000000",
+      "defaultMotor": "B", "emitOnPush": true,
+      "x": 360, "y": 260, "wires": [["d_blind"]] },
+    { "id": "d_blind",  "type": "debug", "z": "f_discover", "name": "blind state", "active": true, "complete": "payload", "x": 560, "y": 260, "wires": [] }
+]
